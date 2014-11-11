@@ -30,6 +30,7 @@ echo $id>id
 
 id=$(date --date="$id" +"%s")
 
+id=$((id + 1))
 
 if [  $id -gt  $b  ]
 then
@@ -43,6 +44,5 @@ else
 	
 fi	
 
-done < pagelog
-| mysql -uroot -p123 printer 
+done < pagelog | mysql -uroot -p123 printer 
 sed  -i 's/ /:/' pagelog
