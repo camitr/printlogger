@@ -13,7 +13,36 @@ while IFS=, read -ra arr; do
 
 dat=$(date -d ${arr[1]:0:9} +'%Y-%m-%d')
 dat=$(echo $dat ${arr[1]:10})
-	    echo "INSERT INTO print_detail (printer,date,user,IP,info) VALUES ('${arr[0]}','$dat','${arr[2]}','${arr[3]}', '${arr[4]}');"
+echo ${arr[1]}>a
 
-done < 2 | mysql -uroot -p123 printer 
+#date formate of file to compare as integer 
+sed -i  's/:/ /' a
+
+a=`cat a`
+
+b=$(date --date="$a" +"%s")
+
+#return last insert data date
+id=`mysql -uroot -p123 -s -N -e "select date from printer.print_detail where id = ( select max(id) from printer.print_detail);"`
+echo $id>id
+
+# convert db date in compareable formate
+
+id=$(date --date="$id" +"%s")
+
+
+if [  $id -gt  $b  ]
+then
+	echo ""
+
+	    
+else
+
+	  echo "INSERT INTO print_detail (printer,date,user,IP,info) VALUES ('${arr[0]}','$dat','${arr[2]}','${arr[3]}', '${arr[4]}');"
+	#echo " not match "
+	
+fi	
+
+done < pagelog
+| mysql -uroot -p123 printer 
 sed  -i 's/ /:/' pagelog
