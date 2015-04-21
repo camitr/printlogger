@@ -1,10 +1,14 @@
 #!/bin/bash
+PATH=/bin:/usr/bin:/sbin:/usr/local/bin
+#this script has condition with date, only recent data will be uploaded 
 
-awk '{print $1 "," $4 "," $2 "," $9 "," $10$11$12$13$14$15$16$17$18}' page_log.1|tr -d [] > pagelog
+cp /var/log/cups/page_log /var/www/printer-script
+
+awk '{print $1 "," $4 "," $2 "," $9 "," $10$11$12$13$14$15$16$17$18}' /var/www/printer-script/page_log|tr -d [] > /var/www/printer-script/pagelog
 
 
 
-sed -i 's/\///g' pagelog
+sed -i 's/\///g' /var/www/printer-script/pagelog
 
 
 while IFS=, read -ra arr; do
@@ -13,18 +17,20 @@ while IFS=, read -ra arr; do
 
 dat=$(date -d ${arr[1]:0:9} +'%Y-%m-%d')
 dat=$(echo $dat ${arr[1]:10})
-echo ${arr[1]}>a
+echo ${arr[1]}>/var/www/printer-script/a
 
 #date formate of file to compare as integer 
-sed -i  's/:/ /' a
+sed -i  's/:/ /' /var/www/printer-script/a
 
-a=`cat a`
+a=`cat /var/www/printer-script/a`
 
 b=$(date --date="$a" +"%s")
 
 #return last insert data date
-id=`mysql -uroot -p123 -s -N -e "select date from printer.print_detail where id = ( select max(id) from printer.print_detail);"`
-echo $id>id
+id=`/usr/bin/mysql -u root -p"123" -s -N -e "select date from print_document.print_detail where id = ( select max(id) from print_document.print_detail);"`
+echo $id>/var/www/printer-script/id
+
+#echo "printer log  taken on $(date)">>/var/www/printer-script/printerSchedule.log
 
 # convert db date in compareable formate
 
@@ -44,5 +50,8 @@ else
 	
 fi	
 
-done < pagelog | mysql -uroot -p123 printer 
+#done < pagelog | mysql -uroot -p123 printer 
+done < /var/www/printer-script/pagelog | /usr/bin/mysql --user=root --password="123" print_document
 sed  -i 's/ /:/' pagelog
+
+echo "printer log  taken on $(date)">>/var/www/printer-script/printerSchedule.log
